@@ -10,7 +10,7 @@ The following software need to be installed and accessible from the command line
 ### Usage
 Download `wrap_a_blast.sh` and place the file in your `$PATH` (such as `~/bin/`), then run with `-h/--help` or without argument for usage message.
 ```
-Usage: wrap_a_blast.sh <[options]>
+Usage: wrap_a_blast.sh [options]
 Examples: 
         wrap_a_blast.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
         --cmd "blastp -db nr -outfmt \"6 std stitle\" -evalue 1e-10"
@@ -28,8 +28,9 @@ Options:
          -v --verbose  verbose level: 0 - none, 1 - print messages, 2 - print messages and commands (for debugging) [default:1]
          -h --help     print this help message
 ```
+Recommended usage would be splitting the input fasta into parts of 1000-2000 entries (`-N 2000`), use `-num_threads 2` in the BLAST command to make use of BLAST's native multithreading (in its effective range), then limit jobs to a maximum of 50% of the available resources (`-j 50%`), to avoid overloading.
 
-### Need and background
+### Need and Background
 Though NCBI introduced threading in BLAST in the last decade (find citation from which version), it appears that threading is performed only at a limited stage of the analysis and that beyond 4 cores, there's little gain in performance when performing large queries against even larger databases (such as whole genome ot transcriptome annotation against NCBI nr/nt databases) [[1](http://voorloopnul.com/blog/how-to-correctly-speed-up-blast-using-num_threads/)].  
 Another issue rising from performing large BLAST jobs is that in case of a server crash or failure to complete the command, it is extremely hard to track down which queries have completed and which need re-running.
 
@@ -49,3 +50,8 @@ After completion of all the sub BLAST processes, the log file is examined and th
 After successful run and verifying the the output file was saved in the requested location, the temporary folder and files will be deleted by default (unless the `-k/--keep` flag was specified).  
 Additional verbosity can be specified with the `-v/--verbose` option, to report run messages (`-v 1`) or even the actual commands (`-v 2`), for debugging and troubleshooting purposes.  
 Typing the tool name with the `-h/--help` option will print out the usage message. If no options is given, or if invalid input file is specified (not existent), the usage message will be printed, along with a relevant error message.  
+**Note** -- each spawned BLAST job will load the database into memory, so be mindfull with memory usage and consider other users on shared servers (limit jobs to 50% of the available resources).  
+
+### Todo
+* Add additional background about multi-threaded/multi-processor BLAST
+* Benchmark performance against native threaded BLAST and other implementations (MPI-BLAST, etc.)
