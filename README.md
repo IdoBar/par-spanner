@@ -1,5 +1,5 @@
 # wrap-a-blast
-A shell wrapper to split an input large FASTA file and then execute parallel processes of NCBI BLAST, with GNU parallel
+A shell wrapper to split a large input FASTA file and then execute parallel processes of NCBI BLAST, with GNU parallel
 
 ### Requirments
 The following software need to be installed and accessible from the command line (in the user `$PATH` variable):
