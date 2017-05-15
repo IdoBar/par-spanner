@@ -4,15 +4,22 @@ _usage() {
 cat <<EOF
 $*
         Usage: $0 <[options]>
-        Options:
-                 -i --in       input fasta file. If not specified will defaults to stdin [-]
-                 -o --out      output combined results file. If not specified will defaults to stdout [-]
-                 -N --entries    how many parts to break to input fasta into [default:5000]
-                 -j --jobs     how many parallel jobs to run
-                 -c --cmd      the original command to run, REQUIRED AND MUST BE QUOTED!! (escape internal quotes with \" if needed)
-                 -k --keep     switch to keep the temporary folder used to split and process the input file [default:false]
-                 -v --verbose  verbose level: 0 - none, 1 - print messages, 2 - print messages and commands (not suitable in scripts when the output needs to be piped) [default:1]
-                 -h --help     print this help message
+	Examples: 
+		wrap_a_blast.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
+		--cmd "blastp -db nr -outfmt \"6 std stitle\" -evalue 1e-10"
+
+		cat <query.fasta> | wrap_a_blast.sh -j 12 -N2000 -v 0 -k -c \
+		"blastn -db nt -outfmt 6 -evalue 1e-10 -num_threads 2" > query.fasta.blastn.outfmt6
+
+	Options:
+		 -i --in       input fasta file. If not specified will defaults to stdin [-]
+		 -o --out      output combined results file. If not specified will defaults to stdout [-]
+		 -N --entries    how many parts to break to input fasta into [default:5000]
+		 -j --jobs     how many parallel jobs to run
+		 -c --cmd      the original command to run, REQUIRED AND MUST BE QUOTED!! (escape internal quotes with \" if needed)
+		 -k --keep     switch to keep the temporary folder used to split and process the input file [default:false]
+		 -v --verbose  verbose level: 0 - none, 1 - print messages, 2 - print messages and commands (for debugging) [default:1]
+		 -h --help     print this help message
 
 EOF
 }
