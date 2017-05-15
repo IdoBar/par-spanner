@@ -1,7 +1,7 @@
 # wrap-a-blast
 A shell wrapper to split a large input FASTA file and then execute parallel processes of NCBI BLAST, with GNU parallel
 
-### Requirments
+### Requirements
 The following software need to be installed and accessible from the command line (in the user `$PATH` variable):
 * **GNU parallel** - can be downloaded from the official website <https://www.gnu.org/software/parallel/>, or installed using the distribution package manager (rpm, apt-get, brew, etc.)
 * NCBI **BLAST** suite - can be downloaded and installed from the NCBI ftp <ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/>
