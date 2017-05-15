@@ -8,13 +8,19 @@ The following software need to be installed and accessible from the command line
 * **awk** - the basic awk that's available with every \*NIX distribution
 
 ### Usage
-Run with -h or without argument for usage message.
+Download `wrap_a_blast.sh` and place the file in your `$PATH` (such as `~/bin/`), then run with `-h/--help` or without argument for usage message.
 ```
-Usage: updated_parallel_split_blast.sh <[options]>
+Usage: wrap_a_blast.sh <[options]>
+Examples: 
+        wrap_a_blast.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
+        --cmd "blastp -db nr -outfmt \"6 std stitle\" -evalue 1e-10"
+        cat <query.fasta> | wrap_a_blast.sh -j 12 -N2000 -v 0 -k -c \
+        "blastn -db nt -outfmt 6 -evalue 1e-10 -num_threads 2" > query.fasta.blastn.outfmt6
+        
         Options:
                  -i --in       input fasta file. If not specified will defaults to stdin [-]
                  -o --out      output combined results file. If not specified will defaults to stdout [-]
-                 -p --parts    how many parts to break to input fasta into [default:5000]
+                 -N --entries    how many parts to break to input fasta into [default:5000]
                  -j --jobs     how many parallel jobs to run
                  -c --cmd      the original command to run, REQUIRED AND MUST BE QUOTED!! (escape internal quotes with \" if needed)
                  -k --keep     switch to keep the temporary folder used to split and process the input file [default:false]
@@ -35,7 +41,7 @@ Fortunately, [GNU Parallel](https://www.gnu.org/software/parallel/parallel_tutor
 ### Implementation
 The wrapper is written in Linux shell and should work on any POSIX-compliant system (\*NIX, MAC), with the required software (**NCBI BLAST**, **GNU parallel**, **awk**, see requirments section above). Using _stdin_ and _stdout_ for optional input and output, and reporting to _stderr_, allows the tool to be used in scripts and as part of a complete analysis pipeline.  
 First, an input fasta file, specified with the `-i/--in` option (or derived from _stdin_) is split into multiple sub-files (in a temp folder), each containing N fasta entries (set with the `-N/--entries` option).  
-**awk** is then used to build the BLAST command for each sub-file, using the command template supplied by the user (with the `-c/--cmd` option). **NOTE that the command is a required argument and must be quoted**. If additional quotes are needed (such as when specifying custom output format), inner quotes need to be escaped with a backslash (\\").    
+**awk** is then used to build the BLAST command for each sub-file, using the command template supplied by the user (with the `-c/--cmd` option, query shouldn't be specified). **NOTE that the command is a required argument and must be quoted**. If additional quotes are needed (such as when specifying custom output format), inner quotes need to be escaped with a backslash (\\").      
 Finally, GNU parallel executes the commands in parallel, while keeping running information in a log file (execution time, exit value, etc.) and showing progress information (how many processes left, how many completed and estimated overall completion time).
 The number of jobs (processes) to run in parallel in controlled by the `-j/--jobs` option (same as in GNU parallel), which can be an integer, specifying the number of cores to use, or a percentage of the total available cores on the machine.  
 After completion of all the sub BLAST processes, the log file is examined and the number of successfuly completed processes is compared to the number of submitted jobs. If all commands have completed successfuly, the result sub-files will be concatenated to a single output file, which is then saved to a file (whose name was given with the `-o/--out` option), or sent to _stdout_ for further processing by redirecting or piping. The script will attempt to re-run failed commands (if any).  
