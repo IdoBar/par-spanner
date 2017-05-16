@@ -57,8 +57,8 @@ KEEP=false
 # update PREFIX to your liking (a nice, short descriptive name of your split analysis)
 TMPLOC=$( mktemp -d --tmpdir=./ ) # to create a temporary folder in the current path
 PREFIX="parallel_split_"$DATE
-# For blast, set
-SUFFIX="outfmt6"
+BLAST=0
+
 CMD=false
 while true; do
   case "$1" in
@@ -91,10 +91,26 @@ else
 	INPUT_FASTA="$INPUT"
 fi
 # Check mandatory parameters:
-if [[ "$CMD" = false ]]; then
-        _usage "  >>>>>>>> no valid command given "
-        exit 1
-fi
+if ! [[ "$CMD" = false ]]; then
+     if [[ $(echo $CMD | awk '{print match($0, "blast")}') > 0 ]]; then 
+        BLAST=1
+        # For blast, set
+        SUFFIX="outfmt6"
+     fi
+     if [[ $(echo $CMD | awk '{print match($0, "hmm")}') > 0 ]]; then 
+        BLAST=2
+        # For hmm, set
+        SUFFIX="pfam.domtblout"
+     fi
+     if [[ $BLAST = 0 ]]; then
+         _usage "  >>>>>>>> no valid command given (missing blast or hmm command)"
+         exit 1
+     fi
+else
+    _usage "  >>>>>>>> no valid command given "
+         exit 1
+fi 
+
 
 
 
@@ -112,7 +128,12 @@ rename 's/part([0-9])/part0$1/' $INPUT_FASTA.part?
 
 # Create the parallel commands (your blast command goes in the printf("...") part below.
 # %s are placements for strings that are kept in the variables at the end of the function($1 - file to process from awk, SUBDIR and FILENAME for output folder and file respectively)
-find `pwd` -maxdepth 1 -name "*part*" | awk -v CMD="$CMD" -v PRE="$PREFIX" -v SUF="$SUFFIX" '{n=split($1,a,"/"); SUBDIR=PRE"_results" ;FILENAME=a[n]; "mkdir "SUBDIR" 2>&-" | getline ; printf("%s -query %s > %s/%s.%s\n", CMD, $1, SUBDIR, FILENAME, SUF)}' > $PREFIX.cmds
+#find `pwd` -maxdepth 1 -name "*part*" | awk -v PRE="$PREFIX" -v CPUS="$NCPUS" -v SUF="$SUFFIX" '{n=split($1,a,"/"); SUBDIR=PRE"_results" ;FILENAME=a[n]; "mkdir "SUBDIR" 2>&-" | getline ; printf "hmmscan --cpu %s --domtblout %s/%s.%s ~/.hmmer-3.1/Pfam/Pfam-A.hmm %s > %s_%s_pfam.log\n",CPUS, SUBDIR, FILENAME, SUF, $1, PRE, FILENAME}' > $PREFIX.cmds
+
+
+if ($1 == "false") {array[$2] = $1} else if (array[$2] != "false") array[$2] = $1
+
+find `pwd` -maxdepth 1 -name "*part*" | awk -v BLAST=$BLAST -v CMD="$CMD" -v PRE="$PREFIX" -v SUF="$SUFFIX" '{n=split($1,a,"/"); SUBDIR=PRE"_results" ;FILENAME=a[n]; "mkdir "SUBDIR" 2>&-" | getline ; if (BLAST == 1) {printf("%s -query %s > %s/%s.%s\n", CMD, $1, SUBDIR, FILENAME, SUF)} else if (BLAST == 2) printf("%s --domtblout %s/%s.%s %s \n", CMD, SUBDIR, FILENAME, SUF, $1)}' > $PREFIX.cmds
 
 CMDNUM=$( wc -l < ./$PREFIX.cmds )
 # Finally, for running the blastp commands in parallel:
