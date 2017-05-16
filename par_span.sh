@@ -9,7 +9,7 @@ $*
 		--cmd "blastp -db nr -outfmt \"6 std stitle\" -evalue 1e-10"
 
 		cat <query.fasta> | par_span.sh -j 12 -N2000 -v 0 -k -c \
-		"hmmscan --cpu 4 ~/.hmmer-3.1/Pfam/Pfam-A.hmm" > query.fasta.blastn.outfmt6
+		"hmmscan --cpu 4 ~/.hmmer-3.1/Pfam/Pfam-A.hmm" > query.fasta.pfam.domtblout
 
 	Options:
 		 -i --in       input fasta file. If not specified will defaults to stdin [-]
