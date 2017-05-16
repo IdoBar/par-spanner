@@ -155,11 +155,11 @@ SUCCEED=$( wc -l < ./$PREFIX.successful_cmds )
 if [[ "$FAILED" > 0 || "$SUCCEED" < "$CMDNUM" ]] ; then
     if [[ "$VERBOSE" > 0 ]] ; then
         set +v
-        >&2 printf -v int "%i commands failed:\n" $FAILED
+        >&2 printf -v int "!! %i commands failed:\n" $FAILED
         >&2 cat ./$PREFIX.failed_cmds
         if [[ "$VERBOSE" = 2 ]]; then set -v; fi # verbose - do not echo print commands
     fi
-    read -e -p "Retry running the failed commands? (press enter for Yes, or type N/n): " -i "Yes" RETRY
+    read -e -p ">> Retry running the failed commands? (press enter for Yes, or type N/n): " -i "Yes" RETRY
     if [[ "$RETRY" = "Yes" ]]; then
         parallel --gnu --progress --retry-failed -j$JOBS --joblog ./$PREFIX.parallel.log
         awk -F"\t" 'NR>1{if ($7==0){print $9}}' ./$PREFIX.parallel.log > ./$PREFIX.successful_cmds_retry
@@ -169,14 +169,14 @@ if [[ "$FAILED" > 0 || "$SUCCEED" < "$CMDNUM" ]] ; then
             if [[ "$VERBOSE" = 2 ]]; then set -v; fi # verbose - do not echo print commands
         fi
     else
-        >&2 printf "Some failed commands remains, please check log file (%s.parallel.log)\n" $PREFIX
-        >&2 printf "Combining successful commands into file (%s)\n" "$INPUT_FASTA".$SUFFIX
+        >&2 printf "!! Some failed commands remains, please check log file (%s.parallel.log)\n" $PREFIX
+        >&2 printf "## Combining successful commands into file (%s)\n" "$INPUT_FASTA".$SUFFIX
         touch "$INPUT_FASTA".$SUFFIX
         find $PREFIX"_results" -type f -name "$INPUT_FASTA.part*.$SUFFIX" | xargs -I '{}' cat '{}' >> "$INPUT_FASTA".$SUFFIX
         exit 1
     fi
 else
-    if [[ "$VERBOSE" > 0 ]]; then set +v; >&2 echo "All commands completed successfuly, combining output file."; fi
+    if [[ "$VERBOSE" > 0 ]]; then set +v; >&2 echo "## All commands completed successfuly, combining output file."; fi
     if [[ "$VERBOSE" = 2 ]]; then set -v; fi # verbose - echo commands
     # Combine the output files:
     TMPFILE="$INPUT_FASTA.$SUFFIX"
@@ -189,23 +189,24 @@ else
             # exit 0
         else
             cp "$TMPFILE" "$WORKDIR/$OUTFILE"
-            if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Combined output file can be found at %s\n" "$WORKDIR/$OUTFILE"; fi
+            if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "## Combined output file can be found at %s\n" "$WORKDIR/$OUTFILE"; fi
             if [[ "$VERBOSE" = 2 ]] ; then set -v; fi
         fi
         if [[ "$KEEP" = false ]]; then
-	    if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Returning to working directory and removing temporary files and folders\n"; fi
+	    if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "## Returning to working directory and removing temporary files and folders\n"; fi
             if [[ "$VERBOSE" = 2 ]] ; then set -v; fi
             cd "$WORKDIR"
             rm -r "$PREFIX"* $TMPLOC
 	else
             cd "$WORKDIR"
-            if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Type <rm -r %s> to remove the folder containing the temporary files\n" "$TMPLOC"; fi
+            if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "## Type <rm -r %s> to remove the folder containing the temporary files\n" "$TMPLOC"; fi
             if [[ "$VERBOSE" = 2 ]] ; then set -v; fi
         fi
     else
-        if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Could not find final output, check in temporary folder\n" "$TMPLOC"; fi
+        if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "!! Could not find final output, check in temporary folder\n" "$TMPLOC"; fi
         if [[ "$VERBOSE" = 2 ]] ; then set -v; fi
         exit 1
     fi
 fi
 exit 0
+##
