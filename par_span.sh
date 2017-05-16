@@ -5,11 +5,11 @@ cat <<EOF
 $*
         Usage: $0 <[options]>
 	Examples: 
-		wrap_a_blast.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
+		par_span.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
 		--cmd "blastp -db nr -outfmt \"6 std stitle\" -evalue 1e-10"
 
-		cat <query.fasta> | wrap_a_blast.sh -j 12 -N2000 -v 0 -k -c \
-		"blastn -db nt -outfmt 6 -evalue 1e-10 -num_threads 2" > query.fasta.blastn.outfmt6
+		cat <query.fasta> | par_span.sh -j 12 -N2000 -v 0 -k -c \
+		"hmmscan --cpu 4 ~/.hmmer-3.1/Pfam/Pfam-A.hmm" > query.fasta.blastn.outfmt6
 
 	Options:
 		 -i --in       input fasta file. If not specified will defaults to stdin [-]
@@ -92,12 +92,12 @@ else
 fi
 # Check mandatory parameters:
 if ! [[ "$CMD" = false ]]; then
-     if [[ $(echo $CMD | awk '{print match($0, "blast")}') > 0 ]]; then 
+     if [[ $(echo $CMD | awk '{print match($1, "blast")}') > 0 ]]; then 
         BLAST=1
         # For blast, set
         SUFFIX="outfmt6"
      fi
-     if [[ $(echo $CMD | awk '{print match($0, "hmm")}') > 0 ]]; then 
+     if [[ $(echo $CMD | awk '{print match($1, "hmm")}') > 0 ]]; then 
         BLAST=2
         # For hmm, set
         SUFFIX="pfam.domtblout"
@@ -133,7 +133,13 @@ rename 's/part([0-9])/part0$1/' $INPUT_FASTA.part?
 
 if ($1 == "false") {array[$2] = $1} else if (array[$2] != "false") array[$2] = $1
 
-find `pwd` -maxdepth 1 -name "*part*" | awk -v BLAST=$BLAST -v CMD="$CMD" -v PRE="$PREFIX" -v SUF="$SUFFIX" '{n=split($1,a,"/"); SUBDIR=PRE"_results" ;FILENAME=a[n]; "mkdir "SUBDIR" 2>&-" | getline ; if (BLAST == 1) {printf("%s -query %s > %s/%s.%s\n", CMD, $1, SUBDIR, FILENAME, SUF)} else if (BLAST == 2) printf("%s --domtblout %s/%s.%s %s \n", CMD, SUBDIR, FILENAME, SUF, $1)}' > $PREFIX.cmds
+find `pwd` -maxdepth 1 -name "*part*" | awk -v BLAST=$BLAST -v CMD="$CMD" -v PRE="$PREFIX" -v SUF="$SUFFIX" '
+    {n=split($1,a,"/"); SUBDIR=PRE"_results" ;FILENAME=a[n]; "mkdir "SUBDIR" 2>&-" | getline ; 
+    if (BLAST == 1) 
+        {printf("%s -query %s > %s/%s.%s\n", CMD, $1, SUBDIR, FILENAME, SUF)} 
+    else if (BLAST == 2) 
+        {y=split(CMD,h); STR=sprintf("%s --domtblout %s/%s.%s",h[1], SUBDIR,FILENAME,SUF); sub(h[1], STR, CMD);
+        printf("%s %s \n", CMD, $1)}' > $PREFIX.cmds
 
 CMDNUM=$( wc -l < ./$PREFIX.cmds )
 # Finally, for running the blastp commands in parallel:
