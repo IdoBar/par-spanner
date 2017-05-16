@@ -55,3 +55,4 @@ Typing the tool name with the `-h/--help` option will print out the usage messag
 ### Todo
 * Add additional background about multi-threaded/multi-processor BLAST
 * Benchmark performance against native threaded BLAST and other implementations (MPI-BLAST, etc.)
+* Add an option to support HMM searches 
