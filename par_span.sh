@@ -23,7 +23,7 @@ $*
 
 EOF
 }
-if [ $# = 0 ]; then _usage "  >>>>>>>> no options given "; fi
+if [ $# = 0 ]; then _usage "  >>>>>>>> no options given " >&2 ; exit 1 ; fi
 
 
 # [ $# -ge 1 -a -f "$1" ] && input="$1" || input="-"
@@ -32,7 +32,7 @@ if [ $# = 0 ]; then _usage "  >>>>>>>> no options given "; fi
 # For HMMER
 # NOTE: This requires GNU getopt.  On Mac OS X and FreeBSD, you have to install this
 # separately; see below.
-if ! TEMP=`getopt -o i:o:p:j:c:kv:h --long in:,out:,parts:,jobs:,cmd:,keep,verbose:,help -n 'parallel_split_blast' -- "$@"`
+if ! TEMP=`getopt -o i:o:N:j:c:kv:h --long in:,out:,entries:,jobs:,cmd:,keep,verbose:,help -n 'parallel_split_blast' -- "$@"`
 then
     # something went wrong, getopt will put out an error message for us
     _usage >&2
@@ -86,9 +86,11 @@ fi
 
 if [[ "$INPUT" = "-" ]]; then
 	INPUT_FASTA="$PREFIX.fasta"
-	cat "$INPUT" > "$INPUT_FASTA"
+	cat "$INPUT" > "$TMPLOC"/"$INPUT_FASTA"
 else
 	INPUT_FASTA="$INPUT"
+	cp $INPUT_FASTA "$TMPLOC"/"$INPUT_FASTA"
+	
 fi
 # Check mandatory parameters:
 if ! [[ "$CMD" = false ]]; then
@@ -119,7 +121,7 @@ if [[ $VERBOSE = 2 ]]; then  set -v; fi
 #SUFFIX="pfam.domtblout"
 # mkdir $PREFIX 2>/dev/null
 cd $TMPLOC # $PREFIX
-cat ../$INPUT_FASTA | parallel --gnu -kN$NPARTS --no-run-if-empty --recstart '>' --pipe "cat > $INPUT_FASTA.part{#}"
+cat $INPUT_FASTA | parallel --gnu -kN$NPARTS --no-run-if-empty --recstart '>' --pipe "cat > $INPUT_FASTA.part{#}"
 # remove empty files:
 # find . -size 0 -name "$INPUT_FASTA.part*" | xargs rm
 # Add a trailing '0' to parts 1-9 (to be able to sort the files):
@@ -130,16 +132,13 @@ rename 's/part([0-9])/part0$1/' $INPUT_FASTA.part?
 # %s are placements for strings that are kept in the variables at the end of the function($1 - file to process from awk, SUBDIR and FILENAME for output folder and file respectively)
 #find `pwd` -maxdepth 1 -name "*part*" | awk -v PRE="$PREFIX" -v CPUS="$NCPUS" -v SUF="$SUFFIX" '{n=split($1,a,"/"); SUBDIR=PRE"_results" ;FILENAME=a[n]; "mkdir "SUBDIR" 2>&-" | getline ; printf "hmmscan --cpu %s --domtblout %s/%s.%s ~/.hmmer-3.1/Pfam/Pfam-A.hmm %s > %s_%s_pfam.log\n",CPUS, SUBDIR, FILENAME, SUF, $1, PRE, FILENAME}' > $PREFIX.cmds
 
-
-if ($1 == "false") {array[$2] = $1} else if (array[$2] != "false") array[$2] = $1
-
 find `pwd` -maxdepth 1 -name "*part*" | awk -v BLAST=$BLAST -v CMD="$CMD" -v PRE="$PREFIX" -v SUF="$SUFFIX" '
     {n=split($1,a,"/"); SUBDIR=PRE"_results" ;FILENAME=a[n]; "mkdir "SUBDIR" 2>&-" | getline ; 
     if (BLAST == 1) 
         {printf("%s -query %s > %s/%s.%s\n", CMD, $1, SUBDIR, FILENAME, SUF)} 
     else if (BLAST == 2) 
-        {y=split(CMD,h); STR=sprintf("%s --domtblout %s/%s.%s",h[1], SUBDIR,FILENAME,SUF); sub(h[1], STR, CMD);
-        printf("%s %s \n", CMD, $1)}' > $PREFIX.cmds
+        {y=split(CMD,h); TMPCMD=CMD; STR=sprintf("%s --domtblout %s/%s.%s",h[1], SUBDIR,FILENAME,SUF); sub(h[1], STR, TMPCMD);
+        printf("%s %s\n", TMPCMD, $1)}}' > $PREFIX.cmds
 
 CMDNUM=$( wc -l < ./$PREFIX.cmds )
 # Finally, for running the blastp commands in parallel:
@@ -156,7 +155,7 @@ SUCCEED=$( wc -l < ./$PREFIX.successful_cmds )
 if [[ "$FAILED" > 0 || "$SUCCEED" < "$CMDNUM" ]] ; then
     if [[ "$VERBOSE" > 0 ]] ; then
         set +v
-        >&2 printf -v int "%i commands failed:\n", $FAILED
+        >&2 printf -v int "%i commands failed:\n" $FAILED
         >&2 cat ./$PREFIX.failed_cmds
         if [[ "$VERBOSE" = 2 ]]; then set -v; fi # verbose - do not echo print commands
     fi
@@ -170,8 +169,8 @@ if [[ "$FAILED" > 0 || "$SUCCEED" < "$CMDNUM" ]] ; then
             if [[ "$VERBOSE" = 2 ]]; then set -v; fi # verbose - do not echo print commands
         fi
     else
-        >&2 printf "Some failed commands remains, please check log file (%s.parallel.log)\n", $PREFIX
-        >&2 printf "Combining successful commands into file (%s)\n", "$INPUT_FASTA".$SUFFIX
+        >&2 printf "Some failed commands remains, please check log file (%s.parallel.log)\n" $PREFIX
+        >&2 printf "Combining successful commands into file (%s)\n" "$INPUT_FASTA".$SUFFIX
         touch "$INPUT_FASTA".$SUFFIX
         find $PREFIX"_results" -type f -name "$INPUT_FASTA.part*.$SUFFIX" | xargs -I '{}' cat '{}' >> "$INPUT_FASTA".$SUFFIX
         exit 1
@@ -190,7 +189,7 @@ else
             # exit 0
         else
             cp "$TMPFILE" "$WORKDIR/$OUTFILE"
-            if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Combined output file can be found at %s\n", "$WORKDIR/$OUTFILE"; fi
+            if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Combined output file can be found at %s\n" "$WORKDIR/$OUTFILE"; fi
             if [[ "$VERBOSE" = 2 ]] ; then set -v; fi
         fi
         if [[ "$KEEP" = false ]]; then
@@ -200,11 +199,11 @@ else
             rm -r "$PREFIX"* $TMPLOC
 	else
             cd "$WORKDIR"
-            if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Type <rm -r %s> to remove the folder containing the temporary files\n", "$TMPLOC"; fi
+            if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Type <rm -r %s> to remove the folder containing the temporary files\n" "$TMPLOC"; fi
             if [[ "$VERBOSE" = 2 ]] ; then set -v; fi
         fi
     else
-        if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Could not find final output, check in temporary folder\n", "$TMPLOC"; fi
+        if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "Could not find final output, check in temporary folder\n" "$TMPLOC"; fi
         if [[ "$VERBOSE" = 2 ]] ; then set -v; fi
         exit 1
     fi
