@@ -1,5 +1,5 @@
-# wrap-a-blast
-A shell wrapper to split a large input FASTA file and then execute parallel processes of NCBI BLAST, with GNU parallel
+# PARallel SPlitter and ANnotater -- par_spanner
+A shell wrapper to split a large input FASTA file and then execute parallel processes of NCBI BLAST or HMMscan annotations, with GNU parallel
 
 ### Requirements
 The following software need to be installed and accessible from the command line (in the user `$PATH` variable):
@@ -8,15 +8,15 @@ The following software need to be installed and accessible from the command line
 * **awk** - the basic awk that's available with every \*NIX distribution
 
 ### Usage
-Download `wrap_a_blast.sh` and place the file in your `$PATH` (such as `~/bin/`), then run with `-h/--help` or without argument for usage message.
+Download `par_spanner.sh` and place the file in your `$PATH` (such as `~/bin/`), then run with `-h/--help` or without argument for usage message.
 ```
-Usage: wrap_a_blast.sh [options]
+Usage: par_spanner.sh [options]
 Examples: 
-        wrap_a_blast.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
+        par_spanner.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
         --cmd "blastp -db nr -outfmt \"6 std stitle\" -evalue 1e-10"
         
-        cat <query.fasta> | wrap_a_blast.sh -j 12 -N2000 -v 0 -k -c \
-        "blastn -db nt -outfmt 6 -evalue 1e-10 -num_threads 2" > query.fasta.blastn.outfmt6
+        cat <query.fasta.pep> | par_spanner.sh -j 12 -N2000 -v 0 -k -c \
+        "hmmscan --cpu 4 ~/.hmmer-3.1/Pfam/Pfam-A.hmm" > query.fasta.pep.pfamout
         
 Options:
          -i --in       input fasta file. If not specified will defaults to stdin [-]
@@ -28,7 +28,8 @@ Options:
          -v --verbose  verbose level: 0 - none, 1 - print messages, 2 - print messages and commands (for debugging) [default:1]
          -h --help     print this help message
 ```
-Recommended usage would be splitting the input fasta into parts of 1000-2000 entries (`-N 2000`), use `-num_threads 2` in the BLAST command to make use of BLAST's native multithreading (in its effective range), then limit jobs to a maximum of 50% of the available resources (`-j 50%`), to avoid overloading.
+Recommended usage would be splitting the input fasta into parts of 1000-2000 entries (`-N 2000`), use `-num_threads 2` in the BLAST command to make use of BLAST's native multithreading (in its effective range), then limit jobs to a maximum of 50% of the available resources (`-j 50%`), to avoid overloading.  
+For HMMscan usage, just specify the command with all the optional arguments (`--cpu 4` fro example) with the input and output files specified beforehand with the regular `-i input.file` and `-o output.file` arguments.
 
 ### Need and Background
 Though NCBI introduced threading in BLAST in the last decade (find citation from which version), it appears that threading is performed only at a limited stage of the analysis and that beyond 4 cores, there's little gain in performance when performing large queries against even larger databases (such as whole genome ot transcriptome annotation against NCBI nr/nt databases) [[1](http://voorloopnul.com/blog/how-to-correctly-speed-up-blast-using-num_threads/)].  
@@ -55,4 +56,3 @@ Typing the tool name with the `-h/--help` option will print out the usage messag
 ### Todo
 * Add additional background about multi-threaded/multi-processor BLAST
 * Benchmark performance against native threaded BLAST and other implementations (MPI-BLAST, etc.)
-* Add an option to support HMM searches 
