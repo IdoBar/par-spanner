@@ -138,7 +138,7 @@ find `pwd` -maxdepth 1 -name "*part*" | awk -v BLAST=$BLAST -v CMD="$CMD" -v PRE
         {printf("%s -query %s > %s/%s.%s\n", CMD, $1, SUBDIR, FILENAME, SUF)} 
     else if (BLAST == 2) 
         {y=split(CMD,h); TMPCMD=CMD; STR=sprintf("%s --domtblout %s/%s.%s",h[1], SUBDIR,FILENAME,SUF); sub(h[1], STR, TMPCMD);
-        printf("%s %s\n", TMPCMD, $1)}}' > $PREFIX.cmds
+        printf("%s %s > /dev/null\n", TMPCMD, $1)}}' > $PREFIX.cmds
 
 CMDNUM=$( wc -l < ./$PREFIX.cmds )
 # Finally, for running the blastp commands in parallel:
@@ -196,7 +196,7 @@ else
 	    if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "## Returning to working directory and removing temporary files and folders\n"; fi
             if [[ "$VERBOSE" = 2 ]] ; then set -v; fi
             cd "$WORKDIR"
-            rm -r "$PREFIX"* $TMPLOC
+            rm -r $TMPLOC
 	else
             cd "$WORKDIR"
             if [[ "$VERBOSE" > 0 ]] ; then set +v; >&2 printf "## Type <rm -r %s> to remove the folder containing the temporary files\n" "$TMPLOC"; fi
