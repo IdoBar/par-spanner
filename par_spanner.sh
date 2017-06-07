@@ -5,10 +5,10 @@ cat <<EOF
 $*
         Usage: $0 <[options]>
 	Examples: 
-		par_span.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
+		par_spanner.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
 		--cmd "blastp -db nr -outfmt \"6 std stitle\" -evalue 1e-10"
 
-		cat <query.fasta> | par_span.sh -j 12 -N2000 -v 0 -k -c \
+		cat <query.fasta> | par_spanner.sh -j 12 -N2000 -v 0 -k -c \
 		"hmmscan --cpu 4 ~/.hmmer-3.1/Pfam/Pfam-A.hmm" > query.fasta.pfam.domtblout
 
 	Options:
@@ -32,7 +32,7 @@ if [ $# = 0 ]; then _usage "  >>>>>>>> no options given " >&2 ; exit 1 ; fi
 # For HMMER
 # NOTE: This requires GNU getopt.  On Mac OS X and FreeBSD, you have to install this
 # separately; see below.
-if ! TEMP=`getopt -o i:o:N:j:c:kv:h --long in:,out:,entries:,jobs:,cmd:,keep,verbose:,help -n 'parallel_split_blast' -- "$@"`
+if ! TEMP=`getopt -o i:o:N:j:c:kv:h --long in:,out:,entries:,jobs:,cmd:,keep,verbose:,help -n 'par_spanner' -- "$@"`
 then
     # something went wrong, getopt will put out an error message for us
     _usage >&2
