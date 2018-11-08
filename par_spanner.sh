@@ -92,27 +92,37 @@ else
 	cp $INPUT_FASTA "$TMPLOC"/"$INPUT_FASTA"
 	
 fi
-# Check mandatory parameters:
+# Check mandatory parameters and programs:
 if ! [[ "$CMD" = false ]]; then
-     if [[ $(echo $CMD | awk '{print match($1, "blast")}') > 0 ]]; then 
-        BLAST=1
+     CMD_PROGRAM=$(echo $CMD | cut -f1,1 -d" ")
+     if ! [ -x "$(command -v $CMD_PROGRAM)" ]; then
+	  echo "Error: $CMD_PROGRAM is not installed, please install and/or make sure it's in the search PATH" >&2
+	  exit 1
+     fi
+     if [[ $(echo $CMD_PROGRAM | awk '{print match($1, "blast")}') > 0 ]]; then 
+     	BLAST=1
+	
         # For blast, set
         SUFFIX="outfmt6"
      fi
-     if [[ $(echo $CMD | awk '{print match($1, "hmm")}') > 0 ]]; then 
+     if [[ $(echo $CMD_PROGRAM | awk '{print match($1, "hmm")}') > 0 ]]; then 
         BLAST=2
         # For hmm, set
         SUFFIX="pfam.domtblout"
      fi
      if [[ $BLAST = 0 ]]; then
-         _usage "  >>>>>>>> no valid command given (missing blast or hmm command)"
+         _usage "  >>>>>>>> no valid command given (missing blast or hmm command)" >&2
          exit 1
      fi
 else
-    _usage "  >>>>>>>> no valid command given "
+    _usage "  >>>>>>>> no valid command given " >&2
          exit 1
 fi 
 
+if ! [ -x "$(command -v parallel)" ]; then
+  echo 'Error: GNU parallel is not installed, please visit https://www.gnu.org/software/parallel/ for installation instructions' >&2
+  exit 1
+fi
 
 
 
@@ -165,7 +175,7 @@ if [[ "$FAILED" > 0 || "$SUCCEED" < "$CMDNUM" ]] ; then
         awk -F"\t" 'NR>1{if ($7==0){print $9}}' ./$PREFIX.parallel.log > ./$PREFIX.successful_cmds_retry
         RETRY_OK=$( wc -l ./$PREFIX.successful_cmds_retry )
         if [[ "$RETRY_OK" = "$CMDNUM" ]] ; then
-            if [[ "$VERBOSE" > 0 ]]; then set +v;  >&2 echo "All command completed successfuly in second attempt, combining output file." ; fi
+            if [[ "$VERBOSE" > 0 ]]; then set +v;  >&2 echo "## All command completed successfuly in second attempt, combining output file." ; fi
             if [[ "$VERBOSE" = 2 ]]; then set -v; fi # verbose - do not echo print commands
         fi
     else
