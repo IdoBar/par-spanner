@@ -12,8 +12,8 @@ $*
 		"hmmscan --cpu 4 ~/.hmmer-3.1/Pfam/Pfam-A.hmm" > query.fasta.pfam.domtblout
 
 	Options:
-		 -i --in       input fasta file. If not specified will defaults to stdin [-]
-		 -o --out      output combined results file. If not specified will defaults to stdout [-]
+		 -i --in       input fasta file. If not specified will use stdin [-]
+		 -o --out      output combined results file. If not specified will use stdout [-]
 		 -N --entries    how many parts to break to input fasta into [default:5000]
 		 -j --jobs     how many parallel jobs to run
 		 -c --cmd      the original command to run, REQUIRED AND MUST BE QUOTED!! (escape internal quotes with \" if needed)
