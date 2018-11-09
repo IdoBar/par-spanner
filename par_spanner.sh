@@ -30,9 +30,17 @@ if [ $# = 0 ]; then _usage "  >>>>>>>> no options given " >&2 ; exit 1 ; fi
 # Define these according to the run
 
 # For HMMER
-# NOTE: This requires GNU getopt.  On Mac OS X and FreeBSD, you have to install this
+# NOTE: This requires GNU getopt and parallel.  On Mac OS X and FreeBSD, you have to install this
 # separately; see below.
-command -v getopt >/dev/null 2>&1 || { echo >&2 "Error: GNU getopt can't be found, please install and/or make sure it's in the search PATH"; exit 1; }
+if ! [ -x "$(command -v parallel)" ]; then
+  echo 'Error: GNU parallel can't be found, please install and/or make sure it's in the search PATH' >&2
+  exit 1
+fi
+if ! [ -x "$(command -v getopt)" ]; then
+  echo 'Error: GNU getopt can't be found, please install and/or make sure it's in the search PATH' >&2
+  exit 1
+fi
+# command -v getopt >/dev/null 2>&1 || { echo >&2 "Error: GNU getopt can't be found, please install and/or make sure it's in the search PATH"; exit 1; }
 if ! TEMP=`getopt -o i:o:N:j:c:kv:h --long in:,out:,entries:,jobs:,cmd:,keep,verbose:,help -n 'par_spanner' -- "$@"`
 then
     # something went wrong, getopt will put out an error message for us
@@ -120,10 +128,7 @@ else
          exit 1
 fi 
 
-if ! [ -x "$(command -v parallel)" ]; then
-  echo 'Error: GNU parallel can't be found, please install and/or make sure it's in the search PATH' >&2
-  exit 1
-fi
+
 
 
 
