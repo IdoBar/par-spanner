@@ -14,7 +14,7 @@ $*
 	Options:
 		 -i --in       input fasta file. If not specified will use stdin [-]
 		 -o --out      output combined results file. If not specified will use stdout [-]
-		 -N --entries    how many parts to break to input fasta into [default:5000]
+		 -N --entries  how many parts to break to input fasta into [default:5000]
 		 -j --jobs     how many parallel jobs to run
 		 -c --cmd      the original command to run, REQUIRED AND MUST BE QUOTED!! (escape internal quotes with \" if needed)
 		 -k --keep     switch to keep the temporary folder used to split and process the input file [default:false]
