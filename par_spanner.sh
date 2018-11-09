@@ -20,6 +20,13 @@ $*
 		 -k --keep     switch to keep the temporary folder used to split and process the input file [default:false]
 		 -v --verbose  verbose level: 0 - none, 1 - print messages, 2 - print messages and commands (for debugging) [default:1]
 		 -h --help     print this help message
+	
+	Required software:
+		par_spanner requires the following software to be installed and available in the search PATH.
+		1. BLAST+ suite or hmmer to perform the search, along with suitably formatted databases stored locally
+		2. GNU getopt which is pre-installed on most Unix distributions, but not on Mac OS X and FreeBSD
+		3. GNU parallel which is used to perform and log the parallel searches. See https://www.gnu.org/software/parallel/
+
 
 EOF
 }
