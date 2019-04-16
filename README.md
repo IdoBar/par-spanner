@@ -5,8 +5,8 @@ A shell wrapper to split a large input FASTA file and then execute parallel proc
 The following software need to be installed and accessible from the command line (in the user `$PATH` variable):
 * **GNU parallel** - can be downloaded from the official website <https://www.gnu.org/software/parallel/>, or installed using the distribution package manager (rpm, apt-get, brew, etc.)
 * **awk** - the basic awk that's available with every \*NIX distribution
-* NCBI **BLAST** suite - can be downloaded and installed from the NCBI ftp <ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/>
-* **HMMER** - can be downloaded from the official website <http://hmmer.org/download.html>, along with appropriately indexed **Pfam** database, which be downloaded from Pfam ftp <ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/> and then indexed with the same version of HMMER that will be used for searching  
+* NCBI **BLAST** suite - can be downloaded and installed from the NCBI [ftp repository](http://bit.ly/ncbiftp)
+* **HMMER** - can be downloaded from the official website <http://hmmer.org/download.html>, along with appropriately indexed **Pfam** database, which be downloaded from the Pfam [ftp repository](bit.ly/pfamftp) and then indexed with the same version of HMMER that will be used for searching  
 
 
 ### Usage
