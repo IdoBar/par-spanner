@@ -1,4 +1,4 @@
-# PARallel SPlitter and ANnotater - par_spanner
+# par_spanner - Split and Annotate in Parallel
 A shell wrapper to split a large input FASTA file and then execute parallel processes of NCBI BLAST or HMMscan annotations, with GNU parallel
 
 ### Requirements
