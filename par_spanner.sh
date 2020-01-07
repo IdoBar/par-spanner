@@ -5,10 +5,10 @@ cat <<EOF
 $*
         Usage: $0 <[options]>
 	Examples: 
-		par_spanner.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N2000 \
+		par_spanner.sh -i <query.pep.fasta> -o <query.pep.blastp.outfmt6> -j 50% -N 2000 \
 		--cmd "blastp -db nr -outfmt \"6 std stitle\" -evalue 1e-10"
 
-		cat <query.fasta> | par_spanner.sh -j 12 -N2000 -v 0 -k -c \
+		cat <query.fasta> | par_spanner.sh -j 12 -N 2000 -v 0 -k -c \
 		"hmmscan --cpu 4 ~/.hmmer-3.1/Pfam/Pfam-A.hmm" > query.fasta.pfam.domtblout
 
 	Options:
