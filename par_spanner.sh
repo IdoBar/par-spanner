@@ -14,8 +14,8 @@ $*
 	Options:
 		 -i --in       input fasta file. If not specified will use stdin [-]
 		 -o --out      output combined results file. If not specified will use stdout [-]
-		 -N --entries  how many parts to break to input fasta into [default:5000]
-		 -j --jobs     how many parallel jobs to run
+		 -N --entries  how many sequences to include in each parallel job (will determine how many total jobs are needed) [default:5000]
+		 -j --jobs     how many parallel jobs to run simultaneously (can be a number or a percentage of the total number of cores) [default:all available cores] 
 		 -c --cmd      the original command to run, REQUIRED AND MUST BE QUOTED!! (escape internal quotes with \" if needed)
 		 -k --keep     switch to keep the temporary folder used to split and process the input file [default:false]
 		 -v --verbose  verbose level: 0 - none, 1 - print messages, 2 - print messages and commands (for debugging) [default:1]
@@ -192,7 +192,7 @@ if [[ "$FAILED" > 0 || "$SUCCEED" < "$CMDNUM" ]] ; then
             if [[ "$VERBOSE" = 2 ]]; then set -v; fi # verbose - do not echo print commands
         fi
     else
-        >&2 printf "!! Some failed commands remains, please check log file (%s.parallel.log)\n" $PREFIX
+        >&2 printf "!! Some failed commands remains, please check log file (%s.parallel.log)\n" "$TMPLOC"/"$PREFIX"
         >&2 printf "## Combining successful commands into file (%s)\n" "$INPUT_FASTA".$SUFFIX
         touch "$INPUT_FASTA".$SUFFIX
         find $PREFIX"_results" -type f -name "$INPUT_FASTA.part*.$SUFFIX" | xargs -I '{}' cat '{}' >> "$INPUT_FASTA".$SUFFIX
